@@ -46,3 +46,17 @@ jobs:
 
       - name: Verify mise binary is available
         run: mise --version
+
+  test-explicit-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup mise (explicit version)
+        uses: ./
+        with:
+          version: 'v2025.1.0'
+          install: 'false'
+
+      - name: Verify mise version
+        run: mise --version | grep -q "2025.1.0"
