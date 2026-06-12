@@ -1,0 +1,56 @@
+name: Release Test
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  test:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup mise
+        uses: ./
+        with:
+          config_file: mise.toml
+
+      - name: Verify node version
+        run: node --version | grep -q "^v24\."
+
+  test-no-cache:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup mise (cache disabled)
+        uses: ./
+        with:
+          config_file: mise.toml
+          cache: 'false'
+
+      - name: Verify node version
+        run: node --version | grep -q "^v24\."
+
+  test-no-install:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup mise (install disabled)
+        uses: ./
+        with:
+          config_file: mise.toml
+          install: 'false'
+
+      - name: Verify mise binary is available
+        run: mise --version
