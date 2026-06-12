@@ -1,0 +1,72 @@
+name: setup-mise
+description: Setup mise on GitHub Actions Ubuntu runners
+branding:
+  icon: package
+  color: purple
+
+inputs:
+  version:
+    description: 'mise version to install (default: latest)'
+    required: false
+    default: ''
+  install:
+    description: 'Run mise install after setup'
+    required: false
+    default: 'true'
+  working_directory:
+    description: 'Directory in which to run mise install'
+    required: false
+    default: '.'
+  cache:
+    description: 'Enable caching of mise binary and installed tools'
+    required: false
+    default: 'true'
+  log_level:
+    description: 'mise log level (trace, debug, info, warn, error)'
+    required: false
+    default: 'info'
+  config_file:
+    description: 'Path to mise config file, relative to working_directory (used for cache key)'
+    required: false
+    default: '.mise.toml'
+  github_token:
+    description: 'GitHub token for authenticated Release downloads to avoid rate limits'
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve mise version
+      shell: bash
+      run: |
+        VERSION="${{ inputs.version }}"
+        VERSION="${VERSION#v}"
+        if [ -z "$VERSION" ]; then
+          VERSION=$(curl -fsSL https://mise.jdx.dev/VERSION | tr -d '[:space:]')
+        fi
+        echo "MISE_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+    - name: Restore mise cache
+      id: mise-cache
+      if: ${{ inputs.cache == 'true' }}
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.local/bin/mise
+          ~/.local/share/mise
+        key: mise-${{ runner.os }}-${{ env.MISE_VERSION }}-${{ hashFiles(inputs.config_file) }}
+        restore-keys: |
+          mise-${{ runner.os }}-${{ env.MISE_VERSION }}-
+
+    - name: Install mise and run mise install
+      shell: bash
+      env:
+        MISE_VERSION: ${{ env.MISE_VERSION }}
+        INPUT_INSTALL: ${{ inputs.install }}
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working_directory }}
+        INPUT_LOG_LEVEL: ${{ inputs.log_level }}
+        INPUT_CONFIG_FILE: ${{ inputs.config_file }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        CACHE_HIT: ${{ steps.mise-cache.outputs.cache-hit }}
+      run: bash ${{ github.action_path }}/run.sh
