@@ -39,9 +39,10 @@ runs:
   steps:
     - name: Resolve mise version
       shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
       run: |
-        VERSION="${{ inputs.version }}"
-        VERSION="${VERSION#v}"
+        VERSION="${INPUT_VERSION#v}"
         if [ -z "$VERSION" ]; then
           VERSION=$(curl -fsSL https://mise.jdx.dev/VERSION | tr -d '[:space:]')
         fi
