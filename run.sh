@@ -30,8 +30,8 @@ else
   echo "mise ${MISE_TAG} restored from cache"
 fi
 
-# Run mise install (skip on full cache hit — tools are already installed)
-if [ "${INPUT_INSTALL}" = "true" ] && [ "${CACHE_HIT}" != "true" ]; then
+# Run mise install unless explicitly disabled (mise is idempotent; cache still speeds up the binary restore)
+if [ "${INPUT_INSTALL}" = "true" ]; then
   if [[ "${INPUT_CONFIG_FILE}" = /* ]]; then
     CONFIG_PATH="${INPUT_CONFIG_FILE}"
   else
