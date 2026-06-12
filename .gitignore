@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# mise
+.mise.local.toml
+
+# Node (if needed locally)
+node_modules/
+npm-debug.log*
+
+# Logs
+*.log
